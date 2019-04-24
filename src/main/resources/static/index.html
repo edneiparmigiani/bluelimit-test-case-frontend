@@ -1,0 +1,171 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Blue Limit Corporation inc</title>
+</head>
+<body>
+
+<div class="container">
+    <div style="background:#FF8C00 !important" class="jumbotron">
+        <h1>Blue Limit</h1>
+        <p>React WEB Page - Twitter Integration</p>
+    </div>
+</div>
+
+<div id='root'></div>
+
+<script src="https://fb.me/react-15.0.1.js"></script>
+<script src="https://fb.me/react-dom-15.0.1.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/babel-core/5.8.23/browser.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.1.1/jquery.min.js"></script>
+
+<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css">
+
+<script type="text/babel">
+
+    var User = React.createClass({
+        render: function () {
+            return (
+                <tr>
+                    <td>{this.props.user.screenName}</td>
+                    <td>{this.props.user.followers}</td>
+                </tr>);
+        }
+    });
+
+    var Tweet = React.createClass({
+        render: function () {
+            return (
+                <tr>
+                    <td>{this.props.tweet.amount}</td>
+                    <td>{this.props.tweet.date}</td>
+                </tr>);
+        }
+    });
+
+    var TweetByIdiom = React.createClass({
+        render: function () {
+            return (
+                <tr>
+                    <td>{this.props.tweetByIdiom.tweets}</td>
+                    <td>{this.props.tweetByIdiom.hastTag}</td>
+                    <td>{this.props.tweetByIdiom.idiom}</td>
+                </tr>);
+        }
+    });
+
+    var Table = React.createClass({
+        render: function () {
+            var rowsUsers = [];
+            this.props.users.forEach(function (user) {
+                rowsUsers.push(<User key={user.id} user={user}/>);
+            });
+
+            var rowsTweetsByHourOfDay = [];
+            this.props.tweetsByHourOfDay.forEach(function (tweet) {
+                rowsTweetsByHourOfDay.push(<Tweet key={tweet.date} tweet={tweet}/>);
+            });
+
+            var rowsTweetAmountByTagsByUser = [];
+            this.props.tweetsAmountByTagsByUser.forEach(function (tweetByIdiom) {
+                rowsTweetAmountByTagsByUser.push(<TweetByIdiom key={tweetByIdiom.hastTag}
+                                                               tweetByIdiom={tweetByIdiom}/>);
+            });
+
+            return (
+                <div className="container">
+                    <br/>
+                    <div className="alert alert-warning">
+                        5 Usuários com mais Seguidores
+                    </div>
+                    <table className="table table-striped">
+                        <thead>
+                        <tr>
+                            <th>Usuário</th>
+                            <th>Seguidores</th>
+                        </tr>
+                        </thead>
+                        <tbody>{rowsUsers}</tbody>
+                    </table>
+                    <br/>
+                    <div className="alert alert-warning">
+                        Postagens por Hora
+                    </div>
+                    <table className="table table-striped">
+                        <thead>
+                        <tr>
+                            <th>Quantidade</th>
+                            <th>Hora e Data</th>
+                        </tr>
+                        </thead>
+                        <tbody>{rowsTweetsByHourOfDay}</tbody>
+                    </table>
+                    <br/>
+                    <div className="alert alert-warning">
+                        Postagens por Idioma do usuário que Postou
+                    </div>
+                    <table className="table table-striped">
+                        <thead>
+                        <tr>
+                            <th>Postagens</th>
+                            <th>Hashtag</th>
+                            <th>Idioma</th>
+                        </tr>
+                        </thead>
+                        <tbody>{rowsTweetAmountByTagsByUser}</tbody>
+                    </table>
+                </div>);
+        }
+    });
+
+    var App = React.createClass({
+        loadUsersFromServer: function () {
+            var self = this;
+            $.ajax({
+                crossDomain: true,
+                url: "http://localhost:8085/bluelimit/api/v1/user-top-five",
+            }).then(function (data) {
+                self.setState({users: data});
+            });
+        },
+        loadTweetCountByHourOfDayFromServer: function () {
+            var self = this;
+            $.ajax({
+                crossDomain: true,
+                url: "http://localhost:8085/bluelimit/api/v1/tweet-group-hours",
+            }).then(function (data) {
+                self.setState({tweetsByHourOfDay: data});
+            });
+        },
+        loadTweetAmountByTagsByUserFromServer: function () {
+            var self = this;
+            $.ajax({
+                crossDomain: true,
+                url: "http://localhost:8085/bluelimit/api/v1/twee-tag",
+            }).then(function (data) {
+                self.setState({tweetsAmountByTagsByUser: data});
+            });
+        },
+        getInitialState: function () {
+            return {users: [], tweetsByHourOfDay: [], tweetsAmountByTagsByUser: []};
+        },
+        componentDidMount: function () {
+            this.loadUsersFromServer();
+            this.loadTweetCountByHourOfDayFromServer();
+            this.loadTweetAmountByTagsByUserFromServer();
+        },
+        render() {
+            return (<Table
+                users={this.state.users}
+                tweetsByHourOfDay={this.state.tweetsByHourOfDay}
+                tweetsAmountByTagsByUser={this.state.tweetsAmountByTagsByUser}
+            />);
+        }
+    });
+
+    ReactDOM.render(<App/>, document.getElementById('root'));
+
+</script>
+
+</body>
+</html>
